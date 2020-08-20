@@ -15,8 +15,18 @@
   "id": "e20847e5"
  },
  {
-  "email": "test3@test.com",
+  "email": "test2@test.com",
   "password": "password",
   "id": "43754b7e"
+ },
+ {
+  "email": "test5@test.com",
+  "password": "password",
+  "id": "08c5c0cc"
+ },
+ {
+  "email": "test6@test.com",
+  "password": "password",
+  "id": "cc0add86"
  }
 ]
