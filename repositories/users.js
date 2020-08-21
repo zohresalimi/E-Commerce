@@ -1,5 +1,5 @@
 const fs = require("fs");
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 class UsersRepository {
   constructor(filename) {
@@ -15,8 +15,9 @@ class UsersRepository {
   }
 
   async getAll() {
-    // open the file and read the content
-    return JSON.parse(await fs.promises.readFile(this.filename, {encoding: "utf-8"}));
+    return JSON.parse(
+      await fs.promises.readFile(this.filename, { encoding: "utf-8" })
+    );
   }
 
   async create(usr) {
@@ -27,49 +28,49 @@ class UsersRepository {
   }
 
   async writeAll(records) {
-    await fs
-      .promises
-      .writeFile(this.filename, JSON.stringify(records, null, 1));
+    await fs.promises.writeFile(
+      this.filename,
+      JSON.stringify(records, null, 1)
+    );
   }
 
   randomId() {
-    return crypto
-      .randomBytes(4)
-      .toString('hex');
+    return crypto.randomBytes(4).toString("hex");
   }
 
   async getOne(id) {
     const records = await this.getAll();
-    return records.find(record => record.id === id)
+    return records.find((record) => record.id === id);
   }
 
   async delete(id) {
     const records = await this.getAll();
-    const filteredRecord = records.filter(record => record.id !== id);
+    const filteredRecord = records.filter((record) => record.id !== id);
     await this.writeAll(filteredRecord);
-
   }
 
   async update(id, attr) {
     const records = await this.getAll();
-    const record = records.find(record => record.id === id)
+    const record = records.find((record) => record.id === id);
     if (!record) {
-      throw new Error(`Record with id ${id} not found`)
+      throw new Error(`Record with id ${id} not found`);
     }
     Object.assign(record, attr);
-    await this.writeAll(records)
+    await this.writeAll(records);
+  }
+
+  async getOnBy(obj) {
+    const records = await this.getAll();
+    for (let record of records) {
+      let found = true;
+      for (let key in obj) {
+        if (record[key] !== obj[key]) {
+          found = false;
+        }
+      }
+      if (found) return record;
+    }
   }
 }
 
-const test = async() => {
-  const repo = new UsersRepository("users.json");
-  // await repo.create({email: "test5@test.com", password: "password"}); const
-  // users = await repo.getAll(); const user = await repo.getOne('10776556')
-  // console.log(user); await repo.delete('8ad87433')
-  await repo.update('cc0add86', {"email": "test6@test.com"})
-  const users = await repo.getAll()
-  console.log(users)
-
-};
-
-test();
+module.exports = new UsersRepository("users.json");
