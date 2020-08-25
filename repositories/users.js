@@ -1,5 +1,8 @@
 const fs = require("fs");
 const crypto = require("crypto");
+const util = require("util");
+
+const scrypt = util.promisify(crypto.scrypt);
 
 class UsersRepository {
   constructor(filename) {
@@ -22,9 +25,16 @@ class UsersRepository {
 
   async create(usr) {
     usr.id = this.randomId();
+    const salt = crypto.randomBytes(8).toString("hex");
+    const hashed = await scrypt(usr.password, salt, 64);
     const records = await this.getAll();
-    records.push(usr);
+    const record = {
+      ...usr,
+      password: `${hashed.toString("hex")}.${salt}`,
+    };
+    records.push(record);
     this.writeAll(records);
+    return record;
   }
 
   async writeAll(records) {
@@ -36,6 +46,11 @@ class UsersRepository {
 
   randomId() {
     return crypto.randomBytes(4).toString("hex");
+  }
+  async comparePassword(hasedPass, intactPass) {
+    const [hashed, salt] = hasedPass.split(".");
+    const hashedSupplied = await scrypt(intactPass, salt, 64);
+    return hashed === hashedSupplied.toString("hex");
   }
 
   async getOne(id) {
