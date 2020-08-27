@@ -1,35 +1,33 @@
 const express = require("express");
 const userRepo = require("../../repositories/users");
+const singupTemplate = require("../../views/admin/signup");
+const signinTemplate = require("../../views/admin/signin");
 
 const router = express.Router();
+const { check } = require("express-validator");
 
 router.get("/signup", (request, response) => {
-  response.send(`
-      <div>
-        <form method="POST">
-          <input name="email" placeholder="email" />
-          <input name="password" placeholder="password" />
-          <input name="passwordConfirmation" placeholder="password confirmation" />
-          <button>Sign Up</button>
-        </form>
-      </div>
-    `);
+  response.send(singupTemplate({ request }));
 });
 
-router.post("/signup", async (request, response) => {
-  const { email, password, passwordConfirmation } = request.body;
-  const existingUser = await userRepo.getOnBy({ email });
-  if (existingUser) {
-    return response.send("the email exist!!");
-  }
-  if (password !== passwordConfirmation) {
-    return response.send("password must be match!!");
-  }
+router.post(
+  "/signup",
+  [check("email").isEmail(), check("password"), check("passwordConfirmation")],
+  async (request, response) => {
+    const { email, password, passwordConfirmation } = request.body;
+    const existingUser = await userRepo.getOnBy({ email });
+    if (existingUser) {
+      return response.send("the email exist!!");
+    }
+    if (password !== passwordConfirmation) {
+      return response.send("password must be match!!");
+    }
 
-  const user = await userRepo.create({ email, password });
-  request.session.userId = user.id;
-  response.send("Account created!!!");
-});
+    const user = await userRepo.create({ email, password });
+    request.session.userId = user.id;
+    response.send("Account created!!!");
+  }
+);
 
 router.get("/signout", (request, response) => {
   request.session = null;
@@ -37,15 +35,7 @@ router.get("/signout", (request, response) => {
 });
 
 router.get("/signin", (request, response) => {
-  response.send(`
-      <div>
-        <form method="POST">
-          <input name="email" placeholder="email" />
-          <input name="password" placeholder="password" />
-          <button>Sign In</button>
-        </form>
-      </div>
-    `);
+  response.send(signinTemplate({ request }));
 });
 
 router.post("/signin", async (request, response) => {
